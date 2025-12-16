@@ -33,12 +33,25 @@ def read_events(last_offset):
             rows = cur.fetchall()
     return rows
 
+def calculate_engagement_seconds(duration_ms):
+    if duration_ms is None:
+        return None
+    return duration_ms / 1000
+
+
+def calculate_engagement_pct(engagement_seconds, length_seconds):
+    if engagement_seconds is None or length_seconds is None:
+        return None
+    return round(engagement_seconds / length_seconds, 2)
+
+
 def main():
     last_offset = 0
     print("Starting event reader...")
 
     while True:
         events = read_events(last_offset)
+
 
         for event in events:
             (
@@ -52,12 +65,17 @@ def main():
                 duration_ms
             ) = event
 
+            engagement_seconds = calculate_engagement_seconds(duration_ms)
+            engagement_pct = calculate_engagement_pct(
+                engagement_seconds, length_seconds
+            )
+
             print(
                 f"event_id={event_id}, "
                 f"type={content_type}, "
-                f"length={length_seconds}, "
-                f"event_type={event_type}, "
-                f"duration_ms={duration_ms}"
+                f"duration_ms={duration_ms}, "
+                f"engagement_seconds={engagement_seconds}, "
+                f"engagement_pct={engagement_pct}"
             )
 
             last_offset = event_id
